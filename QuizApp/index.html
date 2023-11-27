@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <!--Added Google Fonts link below -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vina+Sans&display=swap" rel="stylesheet">
+    
+    <title>Interactive Quiz App</title>
+</head>
+<body>
+
+    <!-- Added a container to hold the background image, separate from the linear gradient to allow animation -->
+
+    <div id="background">
+
+        <img src="icons8-brain-64.png">
+
+        <div class="quiz-container" id="quiz-container">
+
+
+            <div class="questions"></div>
+                <!-- <div class="fill-in-the-blank" style="display: none;">
+                    <label for="fill-in-answer" class="fill-in-question-text"></label>
+                    <input type="text" id="fill-in-answer" class="blank-input" placeholder="Type your answer here"> 
+                </div> -->
+            <div class="matching" style="display:none">
+                <!-- dom manipulation -->
+            </div>
+            <div class="ordering" style="display: none;">
+                <!-- dom manipulation -->
+            </div>
+            <ul class="answers">
+                <!-- options for multiple choice -->
+            </ul>
+
+
+                <!--Quiz Landing Modal-->
+            <div id="landing-modal">
+            <div><button id="new">New</button></div>
+            <div><button id="continue">Continue</button></div>
+            </div>
+
+        </div>
+        
+        
+        
+        <div class="navigation" id="btn-container">
+            
+                <div id="button-set1">  
+                
+                    <button class="prev" id="prev-btn">Previous</button>
+                    <button class="next" id="next-btn">Next</button>
+                </div>
+
+                <div id="button-set2">
+                    <button style="display: none;" class="submit" id="submit-btn">Submit</button>
+                </div>
+
+
+            </div>
+
+
+
+        <div id="prog">
+            <div id="prog-bar">
+
+            </div>
+
+            <div id="prog-bar-hide">
+
+
+            </div>
+        </div>
+
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <h2>Login to Quiz</h2>
+                <input type="text" id="username" placeholder="Enter your name">
+                <button id="login-button">Login</button>
+            </div>
+        </div>
+
+    </div>
+
+
+<script src="script.js"></script>
+</body>
+</html>

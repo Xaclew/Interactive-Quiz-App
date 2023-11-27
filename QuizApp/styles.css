@@ -1,0 +1,107 @@
+body {
+    height: 100vh;
+    background-image: linear-gradient(grey, lightblue);
+    font-family: "Vina Sans", sans-serif;
+}
+
+#background {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+img {
+    position: absolute;
+    scale: 300%;
+    animation-name: spinny-brain;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+}
+
+#quiz-container {
+    z-index: 2;
+    height: 60%;
+    width: 30%;
+    margin-top: 5%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: lightblue 5px dotted;
+}
+
+button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 2rem;
+}
+
+button:hover {
+    color: purple;
+}
+
+#btn-container {
+    width: 100%;
+}
+
+#button-set1 {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+#button-set2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+#prog {
+    display: flex;
+    height: 10%;
+    width: 50%;
+    flex-direction: column;
+    margin-top: 5%;
+}
+
+#prog-bar {
+    background-image: linear-gradient(to right, red, orange, yellow, green, lightblue);
+    height: 50%;
+    width: 100%;
+    z-index: 2;
+    text-align: center;
+    color: white;
+
+}
+
+#prog-bar-hide {
+
+    background-color: black;
+    height: 50%;
+    width: 100%;
+    z-index: 2;
+    transform: translateY(-100%);
+    align-self: flex-end;
+    animation-name: progression;
+    animation-duration: 5s;
+    animation-iteration-count: infinite;
+
+}
+
+
+@keyframes spinny-brain {
+
+
+
+    100% 
+        {transform: rotateZ(360deg);}
+
+    
+}
+

@@ -1,4 +1,4 @@
-const dataBaseURL = "https://interactive-quiz-app-default-rtdb.firebaseio.com";
+const dataBaseURL = "https://interactive-quiz-app-default-rtdb.firebaseio.com/";
 let currentQuestionIndex = 0; // Ensure this is a global variable
 let quizQuestions = [];
 let userAnswers = {};
@@ -9,18 +9,18 @@ let currentUser = null;
 
 async function fetchQuestions() {
     try {
-        const response = await fetch(dataBaseURL + "/Questions.json");
+        const response = await fetch(dataBaseURL + "data/Questions.json");
         const data = await response.json();
         if (data) {
-            let fetchedQuestions = data;
+            let fetchedQuestions = Object.entries(data).map(([id, questionData]) => ({ id, ...questionData }));
             if (!localStorage.getItem('questionOrder')) {
                 // Shuffle only if the question order is not saved
                 quizQuestions = randomQuestions(fetchedQuestions);
-                localStorage.setItem('questionOrder', JSON.stringify(quizQuestions));
+                localStorage.setItem('questionOrder', JSON.stringify(quizQuestions.map(q => q.id)));
             } else {
                 // Load questions in saved order
                 let savedOrder = JSON.parse(localStorage.getItem('questionOrder'));
-                quizQuestions = savedOrder;
+                quizQuestions = savedOrder.map(id => fetchedQuestions.find(q => q.id === id));
             }
 
             console.log("Fetched Questions:", quizQuestions);
@@ -52,7 +52,7 @@ async function loadQuizProgress() {
     if (!currentUser) return;
 
     try {
-        const response = await fetch(`${dataBaseURL}/Users/${currentUser}/progress.json`);
+        const response = await fetch(`${dataBaseURL}data/Users/${currentUser}/progress.json`);
         const progress = await response.json();
 
         if (progress) {
@@ -114,7 +114,7 @@ function resetUserData() {
         lastQuestionId: null,
         totalScore: 0
     };
-    fetch(`${dataBaseURL}/Users/${currentUser}/progress.json`, {
+    fetch(`${dataBaseURL}data/Users/${currentUser}/progress.json`, {
         method: 'PUT',
         body: JSON.stringify(initialProgress),
         headers: {'Content-Type': 'application/json'}
@@ -122,7 +122,7 @@ function resetUserData() {
 
     // Clear responses
     const clearResponses = {};
-    fetch(`${dataBaseURL}/Users/${currentUser}/responses.json`, {
+    fetch(`${dataBaseURL}data/Users/${currentUser}/responses.json`, {
         method: 'PUT',
         body: JSON.stringify(clearResponses),
         headers: {'Content-Type': 'application/json'}
@@ -135,10 +135,14 @@ function handlePreviousButtonClick() {
         currentQuestionIndex--;
         console.log('Current Index After Previous:', currentQuestionIndex);
         displayQuestion(currentQuestionIndex);
-        //updateProgressBar();
+        updateProgressBar();
     } else {
         console.log('Already at the first question, cannot go back further.');
     }
+}
+
+function updateProgressBar(){
+    document.getElementById("prog-bar-hide").style.width = (100 - ((Object.keys(userAnswers).length/12)*100))+'%';
 }
 
 
@@ -148,7 +152,8 @@ function handleNextButtonClick() {
         currentQuestionIndex++;
         console.log('Current Index After Next:', currentQuestionIndex);
         displayQuestion(currentQuestionIndex);
-        //updateProgressBar();
+        updateProgressBar();
+        console.log(userAnswers);
     }
 }
 
@@ -219,7 +224,7 @@ function displayCurrentQuestion() {
 
     // Display the current question
     displayQuestion(currentQuestionIndex);
-    //updateProgressBar();
+    updateProgressBar();
 }
 
 function displayMessage(message) {
@@ -240,7 +245,7 @@ function displayQuestion(index) {
     }
     clearPreviousQuestionDisplay();
 
-    switch (question.Type) {
+    switch (question.type) {
         case 'fill-in-the-blank':
             console.log("test");
             displayFillInTheBlankQuestion(question);
@@ -257,7 +262,7 @@ function displayQuestion(index) {
 
     }
 
-    const submitButton = document.querySelector('.nav-button.submit');
+    const submitButton = document.querySelector('#submit');
     if (submitButton) {
     if (index === quizQuestions.length - 1) {
         submitButton.style.display = 'block';
@@ -286,11 +291,11 @@ function clearPreviousQuestionDisplay() {
 
 function displayFillInTheBlankQuestion(question) {
     clearPreviousQuestionDisplay();
-    console.log(question.Question);
+    console.log(question.text);
 
     // Display the question
     const questionsArea = document.querySelector('.quiz-container');
-    questionsArea.innerHTML = question.Question + 
+    questionsArea.innerHTML = question.text + 
     `
     <div class="fill-in-the-blank" style="display: none;">
     <label for="fill-in-answer" class="fill-in-question-text"></label>
@@ -327,7 +332,7 @@ console.log(blankInput);
 function displayMatchingQuestion(question) {
     clearPreviousQuestionDisplay();
     const questionsArea = document.querySelector('#quiz-container');
-    questionsArea.innerHTML = question.Question;
+    questionsArea.innerHTML = question.text;
 
     const matchingArea = document.createElement('div');
     matchingArea.className = 'matching';
@@ -335,7 +340,7 @@ function displayMatchingQuestion(question) {
     //store user's selection for this question
     let userSelection = {};
 
-    Object.keys(question.Pairs).forEach((key, index) => {
+    Object.keys(question.pairs).forEach((key, index) => {
         const label = document.createElement('label');
         label.textContent = key + ': ';
         label.htmlFor = 'match-' + index;
@@ -350,7 +355,7 @@ function displayMatchingQuestion(question) {
         defaultOption.value = '';
         select.appendChild(defaultOption);
 
-        Object.values(question.Pairs).forEach(value => {
+        Object.values(question.pairs).forEach(value => {
             const option = document.createElement('option');
             option.value = value;
             option.textContent = value;
@@ -396,7 +401,7 @@ function displayOrderingQuestion(question) {
     // Populate list with items
     const orderFromStorage = userAnswers[question.id];
     console.log(userAnswers[question.id]);
-    const items = orderFromStorage || question.Items;
+    const items = orderFromStorage || question.items;
     items.forEach(item => {
         const listItem = document.createElement('li');
         listItem.textContent = item;
@@ -408,6 +413,8 @@ function displayOrderingQuestion(question) {
     });
     questionsArea.appendChild(list);
     addMovementButtons(list, question.id);
+    const orderedItems = Array.from(list.querySelectorAll('.ordering-item')).map(item => item.textContent);
+    storeAnswer(question.id, orderedItems);
 }
 
 function toggleSelection(listItem) {
@@ -471,7 +478,7 @@ function storeAnswer(questionId, answer) {
     // Update the user's responses
     const timestamp = new Date().toISOString();
     const userResponse = { response: answer, timestamp };
-    fetch(`${dataBaseURL}/Users/${currentUser}/responses/${questionId}.json`, {
+    fetch(`${dataBaseURL}data/Users/${currentUser}/responses/${questionId}.json`, {
         method: 'PUT',
         body: JSON.stringify(userResponse),
         headers: {'Content-Type': 'application/json'}
@@ -491,7 +498,7 @@ function storeAnswer(questionId, answer) {
 
     // Update the user's progress
     const progress = { lastQuestionId: questionId, totalScore: totalScore };
-    fetch(`${dataBaseURL}/Users/${currentUser}/progress.json`, {
+    fetch(`${dataBaseURL}data/Users/${currentUser}/progress.json`, {
         method: 'PUT',
         body: JSON.stringify(progress),
         headers: {'Content-Type': 'application/json'}
@@ -508,8 +515,8 @@ function displayMultipleChoiceQuestion(question) {
     questionsArea.innerHTML = '';
 
     const questionText = document.createElement('p');
-    console.log(question.Text);
-    questionText.textContent = question.Text;
+    console.log(question.text);
+    questionText.textContent = question.text;
     questionsArea.appendChild(questionText);
 
     const optionsContainer = document.createElement('div');
@@ -559,10 +566,16 @@ document.addEventListener('DOMContentLoaded', loadQuizProgress);
 
 function showModal() {
     document.getElementById('login-modal').style.display = 'block';
+    document.getElementById('prog').style.display = 'none';
+    document.getElementById('btn-container').style.display = 'none';
+    document.getElementById('quiz-container').style.display = 'none';
 }
 
 function closeModal() {
     document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('prog').style.display = 'flex';
+    document.getElementById('btn-container').style.display = 'block';
+    document.getElementById('quiz-container').style.display = 'flex';
 }
 
 document.getElementById('login-button').addEventListener('click', async function() {
@@ -584,7 +597,7 @@ document.getElementById('login-button').addEventListener('click', async function
 
 async function checkUserExists(username) {
     try {
-        const response = await fetch(`${dataBaseURL}/Users/${username}.json`);
+        const response = await fetch(`${dataBaseURL}data/Users/${username}.json`);
         const data = await response.json();
         return data !== null; // User exists if data is not null
     } catch (error) {

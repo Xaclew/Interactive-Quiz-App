@@ -105,3 +105,22 @@ button:hover {
     
 }
 
+.ordering-item.selected {
+    background-color: lightgreen;
+    border-color: green;
+    color: white;
+}
+
+
+.option.selected {
+    background-color: lightblue;
+    border-color: blue;
+    color: white;
+}
+
+#login-modal {
+    height: 75%;
+    width: 75%;
+
+}
+
